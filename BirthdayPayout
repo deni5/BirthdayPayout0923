@@ -6,7 +6,7 @@ import "https://github.com/bokkypoobah/BokkyPooBahsDateTimeLibrary/blob/master/c
 contract BirthdayPayout {
     string _name;
     address _owner;
-    Teammate[] _teammates;
+    Teammate[] public _teammates;
 
     struct Teammate {
         string name;
@@ -23,14 +23,14 @@ contract BirthdayPayout {
 
     function addTeammate(address account, string memory name, uint256 salary, uint256 birthday) public onlyOwner {
         require(msg.sender != account, "Cannot add oneself");
-        Teammate memory newTeammate = Teammate(name, account, salary, birthday);
+        Teammate memory newTeammate = Teammate(name, account, salary, birthday, false);
         _teammates.push(newTeammate);
-        emit NewTeammate(account, name);
+        emit NewTeammate(account,name);
     }
 
     function findBirthday() public onlyOwner returns (uint256) {
-        require(getTeammatesNumber() > 0, "No teammates in the database");
-        for (uint256 i = 0; i < getTeammatesNumber(); i++) {
+        require(getTeammatesNumber()>0, "No teammates in the database");
+        for (uint256 i=0; i<getTeammatesNumber();i++) {
             if (checkBirthday(i)) {
                 return i;
             }
@@ -40,7 +40,7 @@ contract BirthdayPayout {
 
     function birthdayPayout(uint256 index) public onlyOwner {
         sendToTeammate(index);
-        emit HappyBirthday(_teammates[index].name, _teammates[index].account);
+        emit HappyBirthday(_teammates[index].name,_teammates[index].account);
     }
 
     function getDate(uint256 timestamp) view public returns (uint256 year, uint256 month, uint256 day) {
@@ -72,7 +72,6 @@ contract BirthdayPayout {
     }
 
     function sendToTeammate(uint256 index) internal onlyOwner {
-        require(index < _teammates.length, "Invalid teammate index");
         require(!_teammates[index].hasReceivedGift, "Teammate has already received a gift");
         payable(_teammates[index].account).transfer(_teammates[index].salary);
         _teammates[index].hasReceivedGift = true;
